@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>متابعة حالة الطلب - Q BAS</title>
+<style>
+  body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; background: #f4f9f4; }
+  .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+  h1 { color: #2d7a2d; }
+  .status { font-size: 1.2em; margin-top: 15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>متابعة حالة الطلب</h1>
+  <div id="orderNumber"></div>
+  <div id="status" class="status"></div>
+  <div id="lastUpdate"></div>
+  <div id="notes"></div>
+  <div id="error" style="color:red; margin-top:20px;"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
+<script>
+const publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1LZs42z9VDaVFbjTplag5EAUCXUtiprmNNvlWIt6bQ7E/pubhtml';
+
+function getOrderNumberFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('order');
+}
+
+function init() {
+  Tabletop.init({
+    key: publicSpreadsheetUrl,
+    simpleSheet: true,
+    callback: showOrder
+  });
+}
+
+function showOrder(data, tabletop) {
+  const orderNumber = getOrderNumberFromURL();
+  if (!orderNumber) {
+    document.getElementById('error').textContent = 'يرجى إدخال رقم طلب في الرابط.';
+    return;
+  }
+
+  const order = data.find(o => o.OrderNumber === orderNumber);
+  if (order) {
+    document.getElementById('orderNumber').textContent = `رقم الطلب: ${order.OrderNumber}`;
+    document.getElementById('status').textContent = `الحالة: ${order.Status}`;
+    document.getElementById('lastUpdate').textContent = `آخر تحديث: ${order.LastUpdate}`;
+    document.getElementById('notes').textContent = `ملاحظات: ${order.Notes}`;
+  } else {
+    document.getElementById('error').textContent = 'عذراً، رقم الطلب غير موجود.';
+  }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
