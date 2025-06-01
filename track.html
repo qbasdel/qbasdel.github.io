@@ -2,85 +2,61 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8" />
-<title>متابعة حالة الطلب</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>متابعة حالة الطلب - Q BAS</title>
 <style>
-  body { font-family: Arial, sans-serif; direction: rtl; background: #f0f8f0; padding: 20px; }
-  #container { background: #fff; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
-  h1 { color: #2e7d32; }
-  p { font-size: 1.1em; margin: 10px 0; }
+  body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; background: #f4f9f4; }
+  .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+  h1 { color: #2d7a2d; }
+  .status { font-size: 1.2em; margin-top: 15px; }
 </style>
 </head>
 <body>
-<div id="container">
+<div class="container">
   <h1>متابعة حالة الطلب</h1>
-  <div id="orderInfo">
-    <p id="orderNumber"></p>
-    <p id="status"></p>
-    <p id="cashConfirmed"></p>
-    <p id="paymentMethod"></p>
-  </div>
+  <div id="orderNumber"></div>
+  <div id="status" class="status"></div>
+  <div id="lastUpdate"></div>
+  <div id="notes"></div>
+  <div id="error" style="color:red; margin-top:20px;"></div>
 </div>
 
-<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
 <script>
-  // رقم الطلب من الرابط
-  const urlParams = new URLSearchParams(window.location.search);
-  const orderNumber = urlParams.get('order');
+const publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1LZs42z9VDaVFbjTplag5EAUCXUtiprmNNvlWIt6bQ7E/pubhtml';
 
+function getOrderNumberFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('order');
+}
+
+function init() {
+  Tabletop.init({
+    key: publicSpreadsheetUrl,
+    simpleSheet: true,
+    callback: showOrder
+  });
+}
+
+function showOrder(data, tabletop) {
+  const orderNumber = getOrderNumberFromURL();
   if (!orderNumber) {
-    document.getElementById('orderInfo').textContent = 'لم يتم تحديد رقم الطلب في الرابط.';
-  } else {
-    // معرف Google Sheets (غيره لمعرف ملفك)
-    const spreadsheetId = '1LZs42z9VDaVFbjTplag5EAUCXUtiprmNNvlWIt6bQ7E';
-
-    // تحميل مكتبة Google Sheets API
-    function start() {
-      gapi.client.init({
-        apiKey: 'AIzaSy...ضع هنا مفتاح API الخاص بك...',
-        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-      }).then(() => {
-        return gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: spreadsheetId,
-          range: 'dash!B9:M25', // نطاق البيانات (عدل حسب جدولك)
-        });
-      }).then(response => {
-        const rows = response.result.values;
-        if (rows.length === 0) {
-          document.getElementById('orderInfo').textContent = 'لا توجد بيانات في الجدول.';
-          return;
-        }
-
-        // استخراج رؤوس الأعمدة (الصف الأول في النطاق)
-        const headers = ['رقم الطلب', 'اسم المطعم', 'رقم العميل', 'موقع العميل (رابط خرائط)', 'قيمة الطلب', 'طريقة الدفع', 'اسم السائق', 'حساب المسافة', 'المسافة بالكيلو متر', 'تأكيد طريقة الدفع', 'تحديث حالة الطلب', 'تأكيد مبلغ الكاش'];
-
-        // تحويل الصفوف إلى كائنات لكل طلب
-        const data = rows.map(row => {
-          let obj = {};
-          headers.forEach((h, i) => {
-            obj[h] = row[i] || '';
-          });
-          return obj;
-        });
-
-        // ابحث عن الطلب برقم الطلب
-        const order = data.find(o => o['رقم الطلب'] === orderNumber);
-
-        if (order) {
-          document.getElementById('orderNumber').textContent = `رقم الطلب: ${order['رقم الطلب']}`;
-          document.getElementById('status').textContent = `الحالة: ${order['تحديث حالة الطلب']}`;
-          document.getElementById('cashConfirmed').textContent = `تأكيد مبلغ الكاش: ${order['تأكيد مبلغ الكاش']}`;
-          document.getElementById('paymentMethod').textContent = `طريقة الدفع: ${order['طريقة الدفع']}`;
-        } else {
-          document.getElementById('orderInfo').textContent = 'رقم الطلب غير موجود.';
-        }
-      }, error => {
-        document.getElementById('orderInfo').textContent = 'حدث خطأ في جلب البيانات.';
-        console.error(error);
-      });
-    }
-
-    gapi.load('client', start);
+    document.getElementById('error').textContent = 'يرجى إدخال رقم طلب في الرابط.';
+    return;
   }
+
+  const order = data.find(o => o['رقم الطلب'] === orderNumber);
+  if (order) {
+    document.getElementById('orderNumber').textContent = `رقم الطلب: ${order['رقم الطلب']}`;
+    document.getElementById('status').textContent = `الحالة: ${order['تحديث حالة الطلب']}`;
+    document.getElementById('lastUpdate').textContent = `آخر تحديث: ${order['تاريخ التحديث'] || order['LastUpdate'] || ''}`;
+    document.getElementById('notes').textContent = `ملاحظات: ${order['ملاحظات'] || order['Notes'] || ''}`;
+  } else {
+    document.getElementById('error').textContent = 'رقم الطلب غير موجود.';
+  }
+}
+
+window.onload = init;
 </script>
 </body>
 </html>
