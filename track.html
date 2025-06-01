@@ -16,8 +16,6 @@
   <h1>متابعة حالة الطلب</h1>
   <div id="orderNumber"></div>
   <div id="status" class="status"></div>
-  <div id="lastUpdate"></div>
-  <div id="notes"></div>
   <div id="error" style="color:red; margin-top:20px;"></div>
 </div>
 
@@ -45,13 +43,10 @@ function showOrder(data, tabletop) {
     return;
   }
 
-  // تعديل اسم العمود ليشمل الإيموجي 🆔
   const order = data.find(o => o['رقم الطلب 🆔'] === orderNumber);
   if (order) {
     document.getElementById('orderNumber').textContent = `رقم الطلب: ${order['رقم الطلب 🆔']}`;
-    document.getElementById('status').textContent = `الحالة: ${order['تحديث حالة الطلب']}`;
-    document.getElementById('lastUpdate').textContent = `آخر تحديث: ${order['تاريخ التحديث'] || order['LastUpdate'] || ''}`;
-    document.getElementById('notes').textContent = `ملاحظات: ${order['ملاحظات'] || order['Notes'] || ''}`;
+    document.getElementById('status').textContent = `الحالة: ${order['تحديث حاله الطلب 🔄']}`;
   } else {
     document.getElementById('error').textContent = 'رقم الطلب غير موجود.';
   }
