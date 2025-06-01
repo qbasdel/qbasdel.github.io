@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>متابعة حالة الطلب - Q BAS</title>
+<title>متابعة حالة الطلب</title>
 <style>
   body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; background: #f4f9f4; }
   .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
@@ -36,7 +36,7 @@ function init() {
   });
 }
 
-function showOrder(data, tabletop) {
+function showOrder(data) {
   const orderNumber = getOrderNumberFromURL();
   if (!orderNumber) {
     document.getElementById('error').textContent = 'يرجى إدخال رقم طلب في الرابط.';
